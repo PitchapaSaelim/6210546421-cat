@@ -4,6 +4,7 @@ import tkinter.ttk as ttk
 from abc import ABC, abstractmethod
 from utils import distance
 
+
 class GameElement(ABC):
 
     @abstractmethod
@@ -21,6 +22,7 @@ class GameElement(ABC):
     @abstractmethod
     def delete(self):
         pass
+
 
 class GameCanvasElement(GameElement):
     def __init__(self, game_app, x=0, y=0):
@@ -65,6 +67,7 @@ class GameCanvasElement(GameElement):
     def update(self):
         pass
 
+
 class Text(GameCanvasElement):
     def __init__(self, game_app, text, x=0, y=0):
         self.text = text
@@ -108,8 +111,8 @@ class GameApp(ttk.Frame):
         self.create_canvas()
 
         self.elements = []
+        self.on_key_pressed_observer = []
         self.init_game()
-
         self.is_stopped = False
 
         self.parent.bind('<KeyPress>', self.on_key_pressed)
@@ -120,7 +123,6 @@ class GameApp(ttk.Frame):
             width=self.canvas_width, height=self.canvas_height, 
             highlightthickness=0)
         self.canvas.grid(sticky="news")
-
 
     def stop_animation(self):
         self.is_stopped = True
@@ -154,6 +156,9 @@ class GameApp(ttk.Frame):
     def init_game(self):
         pass
 
+    def register_on_key_pressed_observer(self, observer):
+        self.on_key_pressed_observer.append(observer)
+
     def pre_update(self):
         pass
 
@@ -161,7 +166,9 @@ class GameApp(ttk.Frame):
         pass
 
     def on_key_pressed(self, event):
-        pass
+        for observer in self.on_key_pressed_observer:
+            observer.notify(event)
 
     def on_key_released(self, event):
-        pass
+        for observer in self.on_key_pressed_observer:
+            observer.notify(event)

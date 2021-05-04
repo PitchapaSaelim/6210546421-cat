@@ -7,61 +7,52 @@ from gamelib import Sprite, GameApp, Text
 
 from consts import *
 
-class SlowFruit(Sprite):
+
+class Fruits(Sprite):
+    def __init__(self, app, image, x, y):
+        super().__init__(app, image, x, y)
+        self.app = app
+
+    def update(self):
+        if self.x < -30:
+            self.to_be_deleted = True
+
+
+class SlowFruit(Fruits):
     def __init__(self, app, x, y):
         super().__init__(app, 'images/apple.png', x, y)
-
-        self.app = app
 
     def update(self):
         self.x -= FRUIT_SLOW_SPEED
 
-        if self.x < -30:
-            self.to_be_deleted = True
 
-
-class FastFruit(Sprite):
+class FastFruit(Fruits):
     def __init__(self, app, x, y):
         super().__init__(app, 'images/banana.png', x, y)
-
-        self.app = app
 
     def update(self):
         self.x -= FRUIT_FAST_SPEED
 
-        if self.x < -30:
-            self.to_be_deleted = True
 
-
-class SlideFruit(Sprite):
+class SlideFruit(Fruits):
     def __init__(self, app, x, y):
         super().__init__(app, 'images/cherry.png', x, y)
-
-        self.app = app
-        self.direction = randint(0,1)*2 - 1
+        self.direction = randint(0, 1) * 2 - 1
 
     def update(self):
         self.x -= FRUIT_FAST_SPEED
         self.y += self.direction * 5
 
-        if self.x < -30:
-            self.to_be_deleted = True
 
-
-class CurvyFruit(Sprite):
+class CurvyFruit(Fruits):
     def __init__(self, app, x, y):
         super().__init__(app, 'images/pear.png', x, y)
-
-        self.app = app
-        self.t = randint(0,360) * 2 * math.pi / 360
+        self.t = randint(0, 360) * 2 * math.pi / 360
 
     def update(self):
         self.x -= FRUIT_SLOW_SPEED * 1.2
         self.t += 1
-        self.y += math.sin(self.t*0.08)*10
-
-        if self.x < -30:
-            self.to_be_deleted = True
+        self.y += math.sin(self.t * 0.08) * 10
 
 
 class Cat(Sprite):
@@ -82,7 +73,14 @@ class Cat(Sprite):
     def check_collision(self, fruit):
         if self.distance_to(fruit) <= CAT_CATCH_DISTANCE:
             fruit.to_be_deleted = True
-            self.app.score += 1
+            if isinstance(fruit, SlowFruit):
+                self.app.score += 1
+            elif isinstance(fruit, FastFruit):
+                self.app.score += 2
+            elif isinstance(fruit, SlideFruit):
+                self.app.score += 5
+            elif isinstance(fruit, CurvyFruit):
+                self.app.score += 10
             self.app.update_score()
 
 
@@ -140,12 +138,12 @@ class CatGame(GameApp):
             self.cat.direction = CAT_UP
         elif event.keysym == 'Down':
             self.cat.direction = CAT_DOWN
-    
+
 
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Fruit Cat")
- 
+
     # do not allow window resizing
     root.resizable(False, False)
     app = CatGame(root, CANVAS_WIDTH, CANVAS_HEIGHT, UPDATE_DELAY)
